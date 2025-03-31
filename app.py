@@ -20,7 +20,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 # Streamlit UI
-st.title('📊 Sales Prediction Dashboard - ANN')
+st.title('📊 Rossmann Sales Prediction Dashboard - Deep Learning')
 
 # Upload dataset
 uploaded_train = st.file_uploader("📂 Upload Train CSV", type=['csv'])
@@ -164,5 +164,7 @@ if uploaded_train and uploaded_store:
 
             # Model Summary
             st.write("### 🔥 Model Summary")
+
             for layer in model.layers:
-                st.write(f"Layer: {layer.name}, Output Shape: {layer.output_shape}, Parameters: {layer.count_params()}")
+              output_shape = layer.get_output_shape_at(0) if hasattr(layer, 'get_output_shape_at') else "N/A" # Use get_output_shape_at() for better compatibility
+              st.write(f"Layer: {layer.name}, Output Shape: {output_shape}, Parameters: {layer.count_params()}")
