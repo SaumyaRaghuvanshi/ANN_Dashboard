@@ -20,7 +20,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 # Streamlit UI
-st.title('📊 Rossmann Sales Prediction Dashboard - Deep Learning')
+st.title('📊 Sales Prediction Dashboard - ANN')
 
 # Upload dataset
 uploaded_train = st.file_uploader("📂 Upload Train CSV", type=['csv'])
