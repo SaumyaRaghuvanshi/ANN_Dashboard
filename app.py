@@ -151,6 +151,7 @@ if uploaded_train and uploaded_store:
             st.pyplot(fig)
 
             # 📈 Plot Actual vs Predicted Sales
+            y_pred = model.predict(X_test)
             fig, ax = plt.subplots(figsize=(12, 6))
             ax.scatter(y_test, y_pred, alpha=0.5, label='Predicted vs Actual', color='royalblue')
             ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', label='Perfect Prediction')
