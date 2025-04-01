@@ -8,6 +8,8 @@ Original file is located at
 """
 
 import streamlit as st
+import os
+import gdown
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -20,19 +22,34 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 # Streamlit UI
-st.title('📊 Sales Prediction Dashboard - ANN')
+st.title('📊 Sales Prediction Dashboard - ANN Model')
 
 # Upload dataset
-uploaded_train = st.file_uploader("📂 Upload Train CSV", type=['csv'])
-uploaded_store = st.file_uploader("📂 Upload Store CSV", type=['csv'])
+# --- 📥 Google Drive File IDs ---
+TRAIN_FILE_ID = "1Isp2tA7MnXcNu9le5Lu7wwJNP7Kt67Ky"
+STORE_FILE_ID = "1V8tjbvPiC0mI1AF4M4PajYPDt6orWv4e"
+TRAIN_PATH = "train.csv"
+STORE_PATH = "store.csv"
 
-if uploaded_train and uploaded_store:
-    # Load datasets
-    train_df = pd.read_csv(uploaded_train)
-    store_df = pd.read_csv(uploaded_store)
+# --- 📥 Download the datasets automatically if not present ---
+if not os.path.exists(TRAIN_PATH):
+    gdown.download(f"https://drive.google.com/uc?id={TRAIN_FILE_ID}", TRAIN_PATH, quiet=False)
 
-    st.write("### 🔍 Train Dataset Preview:", train_df.head())
-    st.write("### 🔍 Store Dataset Preview:", store_df.head())
+if not os.path.exists(STORE_PATH):
+    gdown.download(f"https://drive.google.com/uc?id={STORE_FILE_ID}", STORE_PATH, quiet=False)
+
+#uploaded_train = st.file_uploader("📂 Upload Train CSV", type=['csv'])
+#uploaded_store = st.file_uploader("📂 Upload Store CSV", type=['csv'])
+
+# Load datasets
+     train_df = pd.read_csv(TRAIN_PATH)
+     store_df = pd.read_csv(STORE_PATH)
+#if uploaded_train and uploaded_store:
+    #train_df = pd.read_csv(uploaded_train)
+    #store_df = pd.read_csv(uploaded_store)
+
+    #st.write("### 🔍 Train Dataset Preview:", train_df.head())
+    #st.write("### 🔍 Store Dataset Preview:", store_df.head())
 
     # 🔥 Merge the datasets on Store ID
     df = train_df.merge(store_df, how="left", on="Store")
@@ -174,6 +191,17 @@ if uploaded_train and uploaded_store:
             ax.set_title('📉 Residual Plot')
             st.pyplot(fig)
 
+            # 🔥 Feature Importance Plot
+            importances = np.mean(np.abs(model.get_weights()[0]), axis=1)
+            fig, ax = plt.subplots(figsize=(12, 6))
+            ax.bar(X.columns, importances, color='skyblue')
+            ax.set_title('🔥 Feature Importance')
+            ax.set_xlabel('Features')
+            ax.set_ylabel('Importance')
+            ax.tick_params(axis='x', rotation=45)
+            st.pyplot(fig)
+
+
             # 🎯 Sales Distribution Plot : How scaling impacts the data distribution
             fig, ax = plt.subplots(1, 2, figsize=(14, 6))
 
@@ -195,12 +223,16 @@ if uploaded_train and uploaded_store:
             y_pred = model.predict(X_test)
 
             mse = mean_squared_error(y_test, y_pred)
+            rmse = np.sqrt(mse)
             mae = mean_absolute_error(y_test, y_pred)
+            mape = np.mean(np.abs((y_test - y_pred) / y_test)) * 100  # Mean Absolute Percentage Error
             r2 = r2_score(y_test, y_pred)
 
             st.write("### ✅ Model Evaluation")
             st.write(f"📈 MSE: {mse:.4f}")
+            st.write(f"📊 RMSE:{rmse:.4f}")
             st.write(f"📉 MAE: {mae:.4f}")
+            st.write(f"📏 MAPE:{mape:.2f}%")
             st.write(f"🔢 R² Score: {r2:.4f}")
 
             # Model Summary
