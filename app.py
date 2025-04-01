@@ -130,6 +130,81 @@ if st.button("🚀 Train Model"):
         ax.legend()
         st.pyplot(fig)
 
+        # Plot MAE
+        fig, ax = plt.subplots()
+        ax.plot(history.history['mae'], label='Training MAE')
+        ax.plot(history.history['val_mae'], label='Validation MAE')
+        ax.set_xlabel("Epochs")
+        ax.set_ylabel("MAE")
+        ax.legend()
+        st.pyplot(fig)
+
+        # 📈 Plot Actual vs Predicted Sales
+        y_pred = model.predict(X_test)
+        fig, ax = plt.subplots(figsize=(12, 6))
+        ax.scatter(y_test, y_pred, alpha=0.5, label='Predicted vs Actual', color='royalblue')
+        ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', label='Perfect Prediction')
+        ax.set_xlabel('Actual Sales')
+        ax.set_ylabel('Predicted Sales')
+        ax.set_title('📊 Actual vs Predicted Sales')
+        ax.legend()
+        st.pyplot(fig)
+
+        # 📉 Residual Plot - difference between the actual and predicted sales
+        residuals = y_test - y_pred.flatten()
+        fig, ax = plt.subplots(figsize=(12, 6))
+        ax.scatter(y_pred, residuals, alpha=0.5, color='purple')
+        ax.axhline(0, color='red', linestyle='--')
+        ax.set_xlabel('Predicted Sales')
+        ax.set_ylabel('Residuals')
+        ax.set_title('📉 Residual Plot')
+        st.pyplot(fig)
+
+        # 🔥 Feature Importance Plot
+        importances = np.mean(np.abs(model.get_weights()[0]), axis=1)
+        fig, ax = plt.subplots(figsize=(12, 6))
+        ax.bar(X.columns, importances, color='skyblue')
+        ax.set_title('🔥 Feature Importance')
+        ax.set_xlabel('Features')
+        ax.set_ylabel('Importance')
+        ax.tick_params(axis='x', rotation=45)
+        st.pyplot(fig)
+
+
+        # 🎯 Sales Distribution Plot : How scaling impacts the data distribution
+        fig, ax = plt.subplots(1, 2, figsize=(14, 6))
+
+        # Before Scaling
+        ax[0].hist(train_df['Sales'], bins=50, color='lightblue', alpha=0.7)
+        ax[0].set_title('📊 Sales Distribution (Before Scaling)')
+        ax[0].set_xlabel('Sales')
+        ax[0].set_ylabel('Frequency')
+
+        # After Scaling
+        ax[1].hist(y_train, bins=50, color='lightgreen', alpha=0.7)
+        ax[1].set_title('📈 Sales Distribution (After Scaling)')
+        ax[1].set_xlabel('Scaled Sales')
+        ax[1].set_ylabel('Frequency')
+
+        st.pyplot(fig)
+
+        # Final Evaluation
+        y_pred = model.predict(X_test)
+
+        mse = mean_squared_error(y_test, y_pred)
+        rmse = np.sqrt(mse)
+        mae = mean_absolute_error(y_test, y_pred)
+        mape = np.mean(np.abs((y_test - y_pred) / y_test)) * 100  # Mean Absolute Percentage Error
+        r2 = r2_score(y_test, y_pred)
+
+        st.write("### ✅ Model Evaluation")
+        st.write(f"📈 MSE: {mse:.4f}")
+        st.write(f"📊 RMSE:{rmse:.4f}")
+        st.write(f"📉 MAE: {mae:.4f}")
+        st.write(f"📏 MAPE:{mape:.2f}%")
+        st.write(f"🔢 R² Score: {r2:.4f}")
+
+
         # Model Summary
         st.write("### 🔥 Model Summary")
         for layer in model.layers:
