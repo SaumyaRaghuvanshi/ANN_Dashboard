@@ -25,80 +25,67 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 st.title('📊 Sales Prediction Dashboard - ANN Model')
 
 # Upload dataset
-# --- 📥 Google Drive File IDs ---
 TRAIN_FILE_ID = "1Isp2tA7MnXcNu9le5Lu7wwJNP7Kt67Ky"
 STORE_FILE_ID = "1V8tjbvPiC0mI1AF4M4PajYPDt6orWv4e"
 TRAIN_PATH = "train.csv"
 STORE_PATH = "store.csv"
 
-# --- 📥 Download the datasets automatically if not present ---
+# Download the datasets automatically if not present
 if not os.path.exists(TRAIN_PATH):
-  gdown.download(f"https://drive.google.com/uc?id={TRAIN_FILE_ID}", TRAIN_PATH, quiet=False)
+    gdown.download(f"https://drive.google.com/uc?id={TRAIN_FILE_ID}", TRAIN_PATH, quiet=False)
 
 if not os.path.exists(STORE_PATH):
-  gdown.download(f"https://drive.google.com/uc?id={STORE_FILE_ID}", STORE_PATH, quiet=False)
-
-#uploaded_train = st.file_uploader("📂 Upload Train CSV", type=['csv'])
-#uploaded_store = st.file_uploader("📂 Upload Store CSV", type=['csv'])
+    gdown.download(f"https://drive.google.com/uc?id={STORE_FILE_ID}", STORE_PATH, quiet=False)
 
 # Load datasets
 train_df = pd.read_csv(TRAIN_PATH)
 store_df = pd.read_csv(STORE_PATH)
-#if uploaded_train and uploaded_store:
-    #train_df = pd.read_csv(uploaded_train)
-    #store_df = pd.read_csv(uploaded_store)
 
-    #st.write("### 🔍 Train Dataset Preview:", train_df.head())
-    #st.write("### 🔍 Store Dataset Preview:", store_df.head())
-
-# 🔥 Merge the datasets on Store ID
+# Merge the datasets on Store ID
 df = train_df.merge(store_df, how="left", on="Store")
 
-# ✅ Drop unnecessary columns
-columns_to_drop = ['Customers', 'PromoInterval']  # 'Customers' is not needed for predictions
-df.drop(columns=columns_to_drop, inplace=True)
+# Drop unnecessary columns
+df.drop(columns=['Customers', 'PromoInterval'], inplace=True)
 
-# ✅ Convert date column to datetime format
+# Convert date column to datetime format
 df['Date'] = pd.to_datetime(df['Date'])
 
-# ✅ Extract date features
+# Extract date features
 df['Year'] = df['Date'].dt.year
 df['Month'] = df['Date'].dt.month
 df['Day'] = df['Date'].dt.day
 df['WeekOfYear'] = df['Date'].dt.isocalendar().week
 
-# ✅ Handle missing values
+# Handle missing values
 df['CompetitionDistance'].fillna(df['CompetitionDistance'].median(), inplace=True)
 df['CompetitionOpenSinceMonth'].fillna(0, inplace=True)
 df['CompetitionOpenSinceYear'].fillna(0, inplace=True)
 df['Promo2SinceWeek'].fillna(0, inplace=True)
 df['Promo2SinceYear'].fillna(0, inplace=True)
 
-# ✅ Encoding categorical variables
+# Encoding categorical variables
 cat_cols = ['StoreType', 'Assortment', 'StateHoliday']
 df = pd.get_dummies(df, columns=cat_cols, drop_first=True)
 
-# ✅ Scaling numerical features
+# Scaling numerical features
 num_cols = ['CompetitionDistance', 'CompetitionOpenSinceMonth', 'CompetitionOpenSinceYear',
             'Promo2SinceWeek', 'Promo2SinceYear', 'Year', 'Month', 'Day', 'WeekOfYear']
 
 scaler = StandardScaler()
 df[num_cols] = scaler.fit_transform(df[num_cols])
 
-# ✅ Show the pre-processed dataset
+# Show the pre-processed dataset
 st.write("### 🔍 Pre-processed Dataset Preview:", df.head())
 
-# ✅ Train-Test Split
+# Train-Test Split
 X = df.drop(columns=['Sales', 'Date'])
 y = df['Sales']
-
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 st.write("✅ Data Preprocessing Complete!")
 
 # Sidebar for Hyperparameter Selection
 st.sidebar.header("Model Hyperparameters")
-
 num_layers = st.sidebar.slider("Number of Hidden Layers", 1, 5, 3)
 neurons_per_layer = st.sidebar.slider("Neurons per Layer", 32, 256, 128)
 activation = st.sidebar.selectbox("Activation Function", ['relu', 'tanh', 'sigmoid'])
@@ -109,135 +96,42 @@ epochs = st.sidebar.slider("Number of Epochs", 10, 100, 50)
 
 # Model Training Button
 if st.button("🚀 Train Model"):
-  with st.spinner('Training ANN Model... Please wait!'):
+    with st.spinner('Training ANN Model... Please wait!'):
+        # Build ANN Model
+        model = Sequential()
+        model.add(Dense(neurons_per_layer, activation=activation, input_shape=(X_train.shape[1],)))
+        model.add(BatchNormalization())
+        model.add(Dropout(dropout_rate))
 
-# Build ANN Model
-model = Sequential()
+        for _ in range(num_layers - 1):
+            model.add(Dense(neurons_per_layer, activation=activation))
+            model.add(BatchNormalization())
+            model.add(Dropout(dropout_rate))
 
-# Input Layer
-model.add(Dense(neurons_per_layer, activation=activation, input_shape=(X_train.shape[1],)))
-model.add(BatchNormalization())
-model.add(Dropout(dropout_rate))
+        model.add(Dense(1, activation='linear'))
 
-# Hidden Layers
-for _ in range(num_layers - 1):
-  model.add(Dense(neurons_per_layer, activation=activation))
-  model.add(BatchNormalization())
-  model.add(Dropout(dropout_rate))
+        optimizer_dict = {"adam": Adam(learning_rate=learning_rate),
+                          "sgd": SGD(learning_rate=learning_rate),
+                          "rmsprop": RMSprop(learning_rate=learning_rate)}
 
-# Output Layer
-model.add(Dense(1, activation='linear'))
+        model.compile(loss='mse', optimizer=optimizer_dict[optimizer], metrics=['mae'])
 
-# Compile Model
-optimizer_dict = {
-    "adam": Adam(learning_rate=learning_rate),
-    "sgd": SGD(learning_rate=learning_rate),
-    "rmsprop": RMSprop(learning_rate=learning_rate)
-    }
+        history = model.fit(X_train, y_train, validation_data=(X_test, y_test),
+                            epochs=epochs, batch_size=64, verbose=1)
 
-model.compile(
-    loss='mse',
-    optimizer=optimizer_dict[optimizer],
-    metrics=['mae']
-    )
+        st.success("🎉 Model Training Completed!")
 
-# Train the model
-history = model.fit(
-    X_train, y_train,
-    validation_data=(X_test, y_test),
-    epochs=epochs,
-    batch_size=64,
-    verbose=1
-    )
+        # Plot Loss
+        fig, ax = plt.subplots()
+        ax.plot(history.history['loss'], label='Training Loss')
+        ax.plot(history.history['val_loss'], label='Validation Loss')
+        ax.set_xlabel("Epochs")
+        ax.set_ylabel("Loss")
+        ax.legend()
+        st.pyplot(fig)
 
-st.success("🎉 Model Training Completed!")
-
-# Plot Loss
-fig, ax = plt.subplots()
-ax.plot(history.history['loss'], label='Training Loss')
-ax.plot(history.history['val_loss'], label='Validation Loss')
-ax.set_xlabel("Epochs")
-ax.set_ylabel("Loss")
-ax.legend()
-st.pyplot(fig)
-
-# Plot MAE
-fig, ax = plt.subplots()
-ax.plot(history.history['mae'], label='Training MAE')
-ax.plot(history.history['val_mae'], label='Validation MAE')
-ax.set_xlabel("Epochs")
-ax.set_ylabel("MAE")
-ax.legend()
-st.pyplot(fig)
-
-# 📈 Plot Actual vs Predicted Sales
-y_pred = model.predict(X_test)
-fig, ax = plt.subplots(figsize=(12, 6))
-ax.scatter(y_test, y_pred, alpha=0.5, label='Predicted vs Actual', color='royalblue')
-ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', label='Perfect Prediction')
-ax.set_xlabel('Actual Sales')
-ax.set_ylabel('Predicted Sales')
-ax.set_title('📊 Actual vs Predicted Sales')
-ax.legend()
-st.pyplot(fig)
-
-# 📉 Residual Plot - difference between the actual and predicted sales
-residuals = y_test - y_pred.flatten()
-fig, ax = plt.subplots(figsize=(12, 6))
-ax.scatter(y_pred, residuals, alpha=0.5, color='purple')
-ax.axhline(0, color='red', linestyle='--')
-ax.set_xlabel('Predicted Sales')
-ax.set_ylabel('Residuals')
-ax.set_title('📉 Residual Plot')
-st.pyplot(fig)
-
-# 🔥 Feature Importance Plot
-importances = np.mean(np.abs(model.get_weights()[0]), axis=1)
-fig, ax = plt.subplots(figsize=(12, 6))
-ax.bar(X.columns, importances, color='skyblue')
-ax.set_title('🔥 Feature Importance')
-ax.set_xlabel('Features')
-ax.set_ylabel('Importance')
-ax.tick_params(axis='x', rotation=45)
-st.pyplot(fig)
-
-
-# 🎯 Sales Distribution Plot : How scaling impacts the data distribution
-fig, ax = plt.subplots(1, 2, figsize=(14, 6))
-
-# Before Scaling
-ax[0].hist(train_df['Sales'], bins=50, color='lightblue', alpha=0.7)
-ax[0].set_title('📊 Sales Distribution (Before Scaling)')
-ax[0].set_xlabel('Sales')
-ax[0].set_ylabel('Frequency')
-
-# After Scaling
-ax[1].hist(y_train, bins=50, color='lightgreen', alpha=0.7)
-ax[1].set_title('📈 Sales Distribution (After Scaling)')
-ax[1].set_xlabel('Scaled Sales')
-ax[1].set_ylabel('Frequency')
-
-st.pyplot(fig)
-
-# Final Evaluation
-y_pred = model.predict(X_test)
-
-mse = mean_squared_error(y_test, y_pred)
-rmse = np.sqrt(mse)
-mae = mean_absolute_error(y_test, y_pred)
-mape = np.mean(np.abs((y_test - y_pred) / y_test)) * 100  # Mean Absolute Percentage Error
-r2 = r2_score(y_test, y_pred)
-
-st.write("### ✅ Model Evaluation")
-st.write(f"📈 MSE: {mse:.4f}")
-st.write(f"📊 RMSE:{rmse:.4f}")
-st.write(f"📉 MAE: {mae:.4f}")
-st.write(f"📏 MAPE:{mape:.2f}%")
-st.write(f"🔢 R² Score: {r2:.4f}")
-
-# Model Summary
-st.write("### 🔥 Model Summary")
-
-for layer in model.layers:
-  output_shape = layer.get_output_shape_at(0) if hasattr(layer, 'get_output_shape_at') else "N/A" # Use get_output_shape_at() for better compatibility
-  st.write(f"Layer: {layer.name}, Output Shape: {output_shape}, Parameters: {layer.count_params()}")
+        # Model Summary
+        st.write("### 🔥 Model Summary")
+        for layer in model.layers:
+            output_shape = layer.output_shape if hasattr(layer, 'output_shape') else "N/A"
+            st.write(f"Layer: {layer.name}, Output Shape: {output_shape}, Parameters: {layer.count_params()}")
