@@ -197,12 +197,12 @@ if st.button("🚀 Train Model"):
         mape = np.mean(np.abs((y_test - y_pred) / y_test)) * 100  # Mean Absolute Percentage Error
         r2 = r2_score(y_test, y_pred)
 
-        st.write("### ✅ Model Evaluation")
-        st.write(f"📈 MSE: {mse:.4f}")
-        st.write(f"📊 RMSE:{rmse:.4f}")
-        st.write(f"📉 MAE: {mae:.4f}")
-        st.write(f"📏 MAPE:{mape:.2f}%")
-        st.write(f"🔢 R² Score: {r2:.4f}")
+        st.write("### ✅ Model Evaluation Metrics")
+        st.write(f"📈 **Mean Squared Error (MSE):** {mse:.4f}")
+        st.write(f"📊 **Root Mean Squared Error (RMSE):** {rmse:.4f}")
+        st.write(f"📉 **Mean Absolute Error (MAE):** {mae:.4f}")
+        st.write(f"🔢 **R² Score:** {r2:.4f}")
+        st.write(f"📏 **Mean Absolute Percentage Error (MAPE):** {mape:.2f}%")
 
 
         # Model Summary
