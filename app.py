@@ -150,6 +150,43 @@ if uploaded_train and uploaded_store:
             ax.legend()
             st.pyplot(fig)
 
+            # 📈 Plot Actual vs Predicted Sales
+            fig, ax = plt.subplots(figsize=(12, 6))
+            ax.scatter(y_test, y_pred, alpha=0.5, label='Predicted vs Actual', color='royalblue')
+            ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', label='Perfect Prediction')
+            ax.set_xlabel('Actual Sales')
+            ax.set_ylabel('Predicted Sales')
+            ax.set_title('📊 Actual vs Predicted Sales')
+            ax.legend()
+            st.pyplot(fig)
+
+            # 📉 Residual Plot - difference between the actual and predicted sales
+            residuals = y_test - y_pred.flatten()
+            fig, ax = plt.subplots(figsize=(12, 6))
+            ax.scatter(y_pred, residuals, alpha=0.5, color='purple')
+            ax.axhline(0, color='red', linestyle='--')
+            ax.set_xlabel('Predicted Sales')
+            ax.set_ylabel('Residuals')
+            ax.set_title('📉 Residual Plot')
+            st.pyplot(fig)
+
+            # 🎯 Sales Distribution Plot : How scaling impacts the data distribution
+            fig, ax = plt.subplots(1, 2, figsize=(14, 6))
+
+            # Before Scaling
+            ax[0].hist(train_df['Sales'], bins=50, color='lightblue', alpha=0.7)
+            ax[0].set_title('📊 Sales Distribution (Before Scaling)')
+            ax[0].set_xlabel('Sales')
+            ax[0].set_ylabel('Frequency')
+
+            # After Scaling
+            ax[1].hist(y_train, bins=50, color='lightgreen', alpha=0.7)
+            ax[1].set_title('📈 Sales Distribution (After Scaling)')
+            ax[1].set_xlabel('Scaled Sales')
+            ax[1].set_ylabel('Frequency')
+
+            st.pyplot(fig)
+
             # Final Evaluation
             y_pred = model.predict(X_test)
 
