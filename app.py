@@ -68,6 +68,9 @@ if uploaded_train and uploaded_store:
     scaler = StandardScaler()
     df[num_cols] = scaler.fit_transform(df[num_cols])
 
+    # ✅ Show the pre-processed dataset
+    st.write("### 🔍 Pre-processed Dataset Preview:", df.head())
+
     # ✅ Train-Test Split
     X = df.drop(columns=['Sales', 'Date'])
     y = df['Sales']
