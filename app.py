@@ -204,7 +204,7 @@ if st.button("🚀 Train Model"):
         mse = mean_squared_error(y_test, y_pred)
         rmse = np.sqrt(mse)
         mae = mean_absolute_error(y_test, y_pred)
-        mape = np.mean(np.abs((y_test - y_pred.flatten()) / np.where(y_test == 0, 1, y_test))) * 100  # Mean Absolute Percentage Error
+        mape = np.mean(np.abs((y_test - y_pred) / y_test)) * 100  # Mean Absolute Percentage Error
         r2 = r2_score(y_test, y_pred)
 
         st.write("### ✅ Model Evaluation Metrics")
