@@ -77,6 +77,16 @@ df[num_cols] = scaler.fit_transform(df[num_cols])
 # Show the pre-processed dataset
 st.write("### 🔍 Pre-processed Dataset Preview:", df.head())
 
+# Save pre-processed dataset
+PREPROCESSED_PATH = "Preprocessed_sales_data.csv"
+df.to_csv(PREPROCESSED_PATH, index=False)
+
+# Provide a download link in Streamlit
+st.download_button(label="📥 Download Preprocessed Data",
+                   data=open(PREPROCESSED_PATH, "rb"),
+                   file_name="Preprocessed_sales_data.csv",
+                   mime="text/csv")
+
 # Train-Test Split
 X = df.drop(columns=['Sales', 'Date'])
 y = df['Sales']
