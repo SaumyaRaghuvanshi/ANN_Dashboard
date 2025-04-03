@@ -131,22 +131,27 @@ if st.button("🚀 Train Model"):
 
         st.success("🎉 Model Training Completed!")
 
-        # Plot Loss
-        fig, ax = plt.subplots()
-        ax.plot(history.history['loss'], label='Training Loss')
-        ax.plot(history.history['val_loss'], label='Validation Loss')
-        ax.set_xlabel("Epochs")
-        ax.set_ylabel("Loss")
-        ax.legend()
-        st.pyplot(fig)
+        # Performance Metrics Plots (Loss & MAE)
+        st.subheader("Model Performance Over Epochs")
 
-        # Plot MAE
-        fig, ax = plt.subplots()
-        ax.plot(history.history['mae'], label='Training MAE')
-        ax.plot(history.history['val_mae'], label='Validation MAE')
-        ax.set_xlabel("Epochs")
-        ax.set_ylabel("MAE")
-        ax.legend()
+        fig, ax = plt.subplots(1, 2, figsize=(12, 5))
+
+        # Plot MAE (Mean Absolute Error)
+        ax[0].plot(history.history['mae'], label='Training MAE', color='blue')
+        ax[0].plot(history.history['val_mae'], label='Validation MAE', color='orange')
+        ax[0].legend()
+        ax[0].set_title('📈 Mean Absolute Error (MAE)')
+        ax[0].set_xlabel('Epochs')
+        ax[0].set_ylabel('MAE')
+
+        # Plot Loss (Mean Squared Error)
+        ax[1].plot(history.history['loss'], label='Training Loss (MSE)', color='blue')
+        ax[1].plot(history.history['val_loss'], label='Validation Loss (MSE)', color='orange')
+        ax[1].legend()
+        ax[1].set_title('📉 Model Loss (MSE)')
+        ax[1].set_xlabel('Epochs')
+        ax[1].set_ylabel('Loss')
+
         st.pyplot(fig)
 
         # 📈 Plot Actual vs Predicted Sales
