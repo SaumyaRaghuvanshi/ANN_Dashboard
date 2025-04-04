@@ -1,8 +1,5 @@
-Absolutely! Here's a more polished and **theory-focused** version of the `README.md` that keeps all your content intact but trims down the code snippets and improves the narrative flow for GitHub presentation:
 
----
-
-# 📊 ANN Sales Prediction Dashboard
+# 📊 Sales Prediction Dashboard - Using ANN 
 
 ## 🚀 Overview  
 This project implements a powerful **Artificial Neural Network (ANN)** for **sales prediction** using historical retail data. The model is integrated within an interactive dashboard and designed to empower businesses with **data-driven decision-making**, enabling better forecasting, resource allocation, and marketing strategy optimization.
