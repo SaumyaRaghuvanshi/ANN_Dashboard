@@ -77,5 +77,5 @@ This project sets the stage for more advanced applications:
 ---
 
 ## 👨‍💻 Contributors
-**Saumya Raghuvanshi** 
-**Vibhavari Saran**
+- **Saumya Raghuvanshi** 
+- **Vibhavari Saran**
